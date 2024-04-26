@@ -3093,6 +3093,7 @@ class FileMenu2D(UI):
         self.current_directory = directory_path
         self.menu_size = size
         self.directory_contents = []
+        self.on_selection = lambda selections: None
 
         super(FileMenu2D, self).__init__()
         self.position = position
@@ -3296,6 +3297,12 @@ class FileMenu2D(UI):
                 self.listbox.update()
                 self.listbox.update_scrollbar()
                 self.set_slot_colors()
+
+        else:
+            selections = list(map(
+                lambda file: self.current_directory + file,
+                self.listbox.selected))
+            self.on_selection(selections)
         i_ren.force_render()
         i_ren.event.abort()
 
