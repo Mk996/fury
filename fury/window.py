@@ -16,6 +16,8 @@ from fury.lib import (
     OffscreenCanvas,
     OrbitController,
     PerspectiveCamera,
+    QtCanvas,
+    QtWidgets,
     Renderer,
     Scene as GfxScene,  # type: ignore
     Viewport,
@@ -193,6 +195,7 @@ class ShowManager:
     ):
         self.size = size
         self._title = title
+        self._is_qt = False
         self._setup_window(window_type)
 
         if renderer is None:
@@ -241,6 +244,10 @@ class ShowManager:
     def _setup_window(self, window_type):
         if window_type == "auto":
             self.window = Canvas(size=self.size, title=self._title)
+        elif window_type == "qt":
+            self._app = QtWidgets.QApplication([])
+            self.window = QtCanvas(size=self.size, title=self._title)
+            self._is_qt = True
         elif window_type == "jupyter":
             self.window = JupyterCanvas(size=self.size, title=self._title)
         elif window_type == "offscreen":
@@ -269,6 +276,10 @@ class ShowManager:
                 )
             )
         return screens
+
+    @property
+    def app(self):
+        return self._app
 
     @property
     def title(self):
@@ -312,7 +323,10 @@ class ShowManager:
 
     def start(self):
         self.render()
-        run()
+        if self._is_qt:
+            self._app.exec()
+        else:
+            run()
 
     def resize(self, _event):
         update_viewports(
@@ -345,8 +359,8 @@ def snapshot(
         return arr
 
 
-def display(*, actors):
+def display(actors, *, window_type="auto"):
     scene = Scene()
     scene.add(*actors)
-    show_m = ShowManager(scene=scene)
+    show_m = ShowManager(scene=scene, window_type=window_type)
     show_m.start()
