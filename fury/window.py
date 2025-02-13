@@ -192,10 +192,14 @@ class ShowManager:
         camera_light=True,
         screen_config=None,
         enable_events=True,
+        qt_app=None,
+        qt_parent=None,
     ):
         self.size = size
         self._title = title
         self._is_qt = False
+        self._qt_app = qt_app
+        self._qt_parent = qt_parent
         self._setup_window(window_type)
 
         if renderer is None:
@@ -242,11 +246,15 @@ class ShowManager:
             self._camera_light = [camera_light] * self._total_screens
 
     def _setup_window(self, window_type):
+        window_type = window_type.lower()
         if window_type == "auto":
             self.window = Canvas(size=self.size, title=self._title)
         elif window_type == "qt":
-            self._app = QtWidgets.QApplication([])
-            self.window = QtCanvas(size=self.size, title=self._title)
+            if self._qt_app is None:
+                self._qt_app = QtWidgets.QApplication([])
+            self.window = QtCanvas(
+                size=self.size, title=self._title, parent=self._qt_parent
+            )
             self._is_qt = True
         elif window_type == "jupyter":
             self.window = JupyterCanvas(size=self.size, title=self._title)
@@ -279,7 +287,7 @@ class ShowManager:
 
     @property
     def app(self):
-        return self._app
+        return self._qt_app
 
     @property
     def title(self):
@@ -324,7 +332,7 @@ class ShowManager:
     def start(self):
         self.render()
         if self._is_qt:
-            self._app.exec()
+            self._qt_app.exec()
         else:
             run()
 
